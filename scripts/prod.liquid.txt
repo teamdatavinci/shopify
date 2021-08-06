@@ -1,0 +1,44 @@
+<script>
+ let curr_prod = {{product|json}} || "";
+ let variant_prod = {{current_variant|json}} || "";
+ let perm = variant_prod.id
+ let d_variants = curr_prod.variants;
+
+
+    dataLayer.push({
+        'event': 'view_item',
+        'ecommerce': {
+          'items': [{
+            'item_name': variant_prod.name, 
+            'price': parseFloat(variant_prod.price)/100,
+            'quantity': '1'
+          }]
+        }
+      });
+
+  setInterval(
+    function(){
+        d_variants.forEach(d => {
+            let a = d.id;
+            let zurl = window.location.href;
+            if (zurl.indexOf(a) != -1) {
+                if(perm!=a){
+                    perm = a;
+                    dataLayer.push({
+                        'event': 'view_item',
+                        'ecommerce': {
+                          'items': [{
+                            'item_name': d.name, 
+                            'price': parseFloat(d.price)/100,
+                            'quantity': '1'
+                          }]
+                        }
+                      });
+                }
+
+            }
+        });
+
+        }, 1500);
+
+</script>

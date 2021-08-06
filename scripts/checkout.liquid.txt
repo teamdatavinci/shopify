@@ -1,0 +1,78 @@
+    {{ checkout_scripts }}
+    
+    <script>
+		window.dataLayer = window.dataLayer || [];
+let checkout_items_ = [];
+
+{% for line_item in checkout.line_items %}
+
+checkout_items_.push({
+    'item_category3': '{{line_item.sku}}',
+    'item_category2': '{{line_item.variant_id}}',
+    'item_name': '{{line_item.title}}',
+    'item_variant':'{{ line_item.variant.title }}',
+    'item_category':'{{ line_item.variant.title}}',
+    'price': '{{line_item.price | money_without_currency| remove: ","}}',
+    'quantity': '{{line_item.quantity}}'
+});
+
+{% endfor %}
+let transactionData = {
+  'ecommerce':{
+    'transactionId': '{{checkout.order_id}}',
+    'affiliation': '{{shop.name}}',
+    'value': '{{checkout.total_price |  money_without_currency| remove: ","}}',
+    'tax': '{{checkout.tax_price |  money_without_currency| remove: ","}}',
+    'shipping': '{{checkout.shipping_price |  money_without_currency| remove: ","}}',
+    'currency':'{{ checkout.currency.iso_code }}',
+    {% for discount in checkout.discounts %}
+    'coupon' : '{{discount.code}}',
+    'discount'  : '{{discount.amount | money_without_currency}}',
+    {% endfor %}
+    'items': checkout_items_
+  }
+    };
+
+
+
+/* DATALAYER: Checkout
+-------------------------- */
+if (Shopify.Checkout) {
+    if (Shopify.Checkout.step) {
+        if (Shopify.Checkout.step.length > 0) {
+            if (Shopify.Checkout.step === 'contact_information') {
+                dataLayer.push(transactionData, {
+                    'event': 'begin_checkout',
+                    'pageType': 'Customer Information'
+                });
+                
+                console.log("Customer Information - Transaction Data" + " :" + JSON.stringify(transactionData, null, " "));
+            } else if (Shopify.Checkout.step === 'shipping_method') {
+                dataLayer.push(transactionData, {
+                    'event': 'add_shipping_info',
+                    'pageType': 'Shipping Information'
+                });
+                console.log("Shipping - Transaction Data" + " :" + JSON.stringify(transactionData, null, " "));
+            } else if (Shopify.Checkout.step === "payment_method") {
+                dataLayer.push(transactionData, {
+                    'event': 'add_payment_info',
+                    'pageType': 'Add Payment Info'
+                });
+                console.log("Payment - Transaction Data" + " :" + JSON.stringify(transactionData, null, " "));
+            }
+            else if (Shopify.Checkout.step === "thank_you") {
+                dataLayer.push(transactionData, {
+                    'event': 'purchase'
+                });
+                console.log("Transaction Data" + " :" + JSON.stringify(transactionData, null, " "));
+            }
+
+        }
+
+
+    }
+}
+
+
+    </script>
+<!-- Enter above code as high as possible-->
